@@ -1,0 +1,67 @@
+<?php
+	$self = $this;
+
+	/**
+	 * Return the HTML representation of a breadcrumb item
+	 * from an array of attributes and a label.
+	 * 
+	 * @param array $attribs
+	 * @param string $label
+	 * @param boolean $isLink
+	 * @return string
+	 */
+	$getBreadcrumbItem = function($attribs, $label, $isLink = true) use ($self) {
+		$attribsStr = '';
+		$out = '';
+		$label = $self->escape($label);
+		
+		foreach($attribs as $k=>$v) {
+			if(!empty($v)) {
+				$attribsStr .= ' ' . $k . '="' . $self->escape($v) . '"';
+			}
+		}
+		
+		if ($isLink) {
+			$out = <<<HTML
+<span itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	<a $attribsStr itemprop="url"><span itemprop="title">$label</span></a>
+</span>
+HTML;
+		} else {
+			$out = <<<HTML
+<span itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	<span itemprop="title">$label</span>
+</span>
+HTML;
+		}
+		
+		return $out;
+	};
+
+	
+	//Render this partial
+	
+	$count = count($this->pages);
+	$separator = $this->navigation()->breadcrumbs()->getSeparator();
+	$linkLast = $this->navigation()->breadcrumbs()->getLinkLast();
+
+	if ($count > 0) {
+		/* @var $page Zend_Navigation_Page */
+		foreach($this->pages as $page) {
+			$attribs = array(
+				'id'     => $page->getId(),
+				'title'  => $page->getTitle(),
+				'class'  => $page->getClass(),
+				'href'   => $page->getHref(),
+				'target' => $page->getTarget()
+			);
+			
+			if(--$count > 0) {
+				echo $getBreadcrumbItem($attribs, $page->getLabel()), $separator;
+			} else {
+				echo $getBreadcrumbItem($attribs, $page->getLabel(), $linkLast);
+			}
+		}
+	}
+	
+?>
